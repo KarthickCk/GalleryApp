@@ -112,4 +112,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     debugImplementation(libs.compose.ui.tooling)
     debugRuntimeOnly(libs.compose.ui.test.manifest)
+
+    implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
 }
