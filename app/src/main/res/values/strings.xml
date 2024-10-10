@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Gallery</string>
+    <string name="permissions_are_not_granted">Permissions are not granted!</string>
+
 </resources>
