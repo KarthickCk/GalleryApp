@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -23,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -34,15 +37,14 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.launch
 import com.app.gallery.R
+import com.app.gallery.domain.model.Album
 
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun GalleryList(
     galleryViewModel: GalleryViewModel = hiltViewModel()
 ) {
-
-    val context = LocalContext.current
 
     val uiState = galleryViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -73,6 +75,32 @@ fun GalleryList(
             galleryViewModel.loadAlbums()
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        when (uiState.value) {
+
+            is GalleryState.Albums -> {
+                GalleryList(list = (uiState.value as GalleryState.Albums).list)
+            }
+
+            is GalleryState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            else -> Unit
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GalleryList(list: List<Album>) {
+
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -95,26 +123,14 @@ fun GalleryList(
             modifier = Modifier.padding(horizontal = 10.dp)
         )
 
-        when (uiState.value) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2)
+        ) {
+            items(list) {
+                AlbumComponent(album = it) {
 
-            is GalleryState.Loading -> Unit
-
-            is GalleryState.Albums -> {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2)
-                ) {
-                    (uiState.value as GalleryState.Albums).list.run {
-                        items(this) {
-                            AlbumComponent(album = it) {
-
-                            }
-                        }
-                    }
                 }
             }
-
-            else -> Unit
-
         }
     }
 }
