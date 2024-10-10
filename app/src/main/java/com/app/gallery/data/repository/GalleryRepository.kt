@@ -7,7 +7,6 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.core.database.getStringOrNull
 import com.app.gallery.domain.model.Album
-import com.app.gallery.domain.model.MediaQuery
 import com.app.gallery.domain.repository.IGalleryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,12 +16,23 @@ class GalleryRepository @Inject constructor(
     private val contentResolver: ContentResolver,
 ) : IGalleryRepository {
 
+    private val AlbumsProjection = arrayOf(
+        MediaStore.Files.FileColumns._ID,
+        MediaStore.Files.FileColumns.DATA,
+        MediaStore.Files.FileColumns.RELATIVE_PATH,
+        MediaStore.Files.FileColumns.DISPLAY_NAME,
+        MediaStore.Files.FileColumns.BUCKET_ID,
+        MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
+        MediaStore.Files.FileColumns.DATE_TAKEN,
+        MediaStore.Files.FileColumns.DATE_MODIFIED,
+        MediaStore.Files.FileColumns.SIZE,
+        MediaStore.Files.FileColumns.MIME_TYPE,
+    )
+
     override fun getAlbums(): Flow<Result<List<Album>>> {
 
-        val projection = MediaQuery.AlbumsProjection
-
         val cursor = contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, AlbumsProjection, null,
             null,
             null
         )
