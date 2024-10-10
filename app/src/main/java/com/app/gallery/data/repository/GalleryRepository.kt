@@ -3,6 +3,7 @@ package com.app.gallery.data.repository
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.database.Cursor
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.database.getStringOrNull
@@ -31,13 +32,26 @@ class GalleryRepository @Inject constructor(
 
     override fun getAlbums(): Flow<Result<List<Album>>> {
 
+        val images = getImages(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        val videos = getImages(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+        val list = mutableListOf<Album>()
+            .apply {
+                addAll(images)
+                addAll(videos)
+            }
+        return flow {
+            emit(Result.success(list))
+        }
+    }
+
+    private fun getImages(uri: Uri): List<Album> {
         val cursor = contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, AlbumsProjection, null,
+            uri, AlbumsProjection, null,
             null,
             null
         )
 
-        val list = cursor.let {
+        return cursor.let {
             mutableMapOf<Int, Album>().apply {
                 it?.use {
                     val idIndex = it.getColumnIndex(MediaStore.Files.FileColumns._ID)
@@ -91,10 +105,6 @@ class GalleryRepository @Inject constructor(
                     }
                 }
             }.values.toList()
-        }
-
-        return flow {
-            emit(Result.success(list))
         }
     }
 }
