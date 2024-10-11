@@ -114,4 +114,8 @@ dependencies {
 
     implementation(libs.sketch.compose)
     implementation(libs.sketch.video)
+
+    testImplementation("io.mockk:mockk:1.13.13")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+
 }
