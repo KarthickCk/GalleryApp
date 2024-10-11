@@ -7,12 +7,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-class GetGalleryUseCase @Inject constructor(
+class GetAlbumsUseCase @Inject constructor(
     private val iGalleryRepository: IGalleryRepository
 ) {
     fun invoke(): Flow<Result<List<Album>>> {
         return iGalleryRepository.getAlbums()
             .flowOn(Dispatchers.IO)
-
     }
 }

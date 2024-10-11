@@ -3,7 +3,6 @@ package com.app.gallery.presentation.gallery
 import android.Manifest
 import android.app.Activity
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,9 +37,10 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.launch
 import com.app.gallery.R
 import com.app.gallery.domain.model.Album
+import com.app.gallery.presentation.GalleryDestinations
+import com.app.gallery.presentation.LocalNavController
 
 @OptIn(ExperimentalPermissionsApi::class)
-@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun GalleryList(
     galleryViewModel: GalleryViewModel = hiltViewModel()
@@ -100,6 +100,7 @@ fun GalleryList(
 private fun GalleryList(list: List<Album>) {
 
     val context = LocalContext.current
+    val navController = LocalNavController.current
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -128,7 +129,11 @@ private fun GalleryList(list: List<Album>) {
         ) {
             items(list) {
                 AlbumComponent(album = it) {
-
+                    navController.navigate(
+                        GalleryDestinations.ALBUM_DETAILS.replace(
+                            "{albumId}", it.id.toString()
+                        )
+                    )
                 }
             }
         }

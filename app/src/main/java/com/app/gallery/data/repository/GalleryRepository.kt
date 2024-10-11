@@ -3,39 +3,25 @@ package com.app.gallery.data.repository
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.database.Cursor
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.CancellationSignal
 import android.provider.MediaStore
-import androidx.compose.foundation.content.MediaType
 import androidx.core.database.getStringOrNull
 import androidx.core.os.bundleOf
+import com.app.gallery.data.DataConstants
+import com.app.gallery.data.extension.mapEachRow
 import com.app.gallery.data.extension.queryFlow
 import com.app.gallery.domain.model.Album
+import com.app.gallery.domain.model.Media
 import com.app.gallery.domain.repository.IGalleryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GalleryRepository @Inject constructor(
     private val contentResolver: ContentResolver,
 ) : IGalleryRepository {
-
-    private val projection = arrayOf(
-        MediaStore.Files.FileColumns._ID,
-        MediaStore.Files.FileColumns.DATA,
-        MediaStore.Files.FileColumns.RELATIVE_PATH,
-        MediaStore.Files.FileColumns.DISPLAY_NAME,
-        MediaStore.Files.FileColumns.BUCKET_ID,
-        MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
-        MediaStore.Files.FileColumns.DATE_TAKEN,
-        MediaStore.Files.FileColumns.DATE_MODIFIED,
-        MediaStore.Files.FileColumns.SIZE,
-        MediaStore.Files.FileColumns.MIME_TYPE,
-    )
 
     override fun getAlbums(): Flow<Result<List<Album>>> {
 
@@ -46,11 +32,10 @@ class GalleryRepository @Inject constructor(
                 )
             )
         }
-        val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
 
         return contentResolver.queryFlow(
-            uri,
-            projection,
+            DataConstants.CONTENT_URI,
+            DataConstants.ALBUM_PROJECTION,
             queryArgs
         ).mapToAlbum()
             .map {
@@ -62,7 +47,7 @@ class GalleryRepository @Inject constructor(
     }
 
     private fun Flow<Cursor?>.mapToAlbum(): Flow<List<Album>> {
-       return map { cursor ->
+        return map { cursor ->
             cursor.let {
                 mutableMapOf<Int, Album>().apply {
                     it?.use {
@@ -70,13 +55,15 @@ class GalleryRepository @Inject constructor(
                         val albumIdIndex = it.getColumnIndex(MediaStore.Files.FileColumns.BUCKET_ID)
                         val labelIndex =
                             it.getColumnIndex(MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME)
-                        val thumbnailPathIndex = it.getColumnIndex(MediaStore.Files.FileColumns.DATA)
+                        val thumbnailPathIndex =
+                            it.getColumnIndex(MediaStore.Files.FileColumns.DATA)
                         val thumbnailRelativePathIndex =
                             it.getColumnIndex(MediaStore.Files.FileColumns.RELATIVE_PATH)
                         val thumbnailDateIndex =
                             it.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED)
                         val sizeIndex = it.getColumnIndex(MediaStore.Files.FileColumns.SIZE)
-                        val mimeTypeIndex = it.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)
+                        val mimeTypeIndex =
+                            it.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)
 
                         if (!it.moveToFirst()) {
                             return@use
@@ -118,6 +105,60 @@ class GalleryRepository @Inject constructor(
                 }.values.toList()
             }
         }
+    }
+
+    private fun Flow<Cursor?>.mapToMedia(): Flow<List<Media>> {
+        return mapEachRow(DataConstants.MEDIA_PROJECTION) { it, indexCache ->
+            var i = 0
+
+            val id = it.getLong(indexCache[i++])
+            val path = it.getString(indexCache[i++])
+            val relativePath = it.getString(indexCache[i++])
+            val title = it.getString(indexCache[i++])
+            val albumID = it.getLong(indexCache[i++])
+            val albumLabel = it.tryGetString(indexCache[i++], Build.MODEL)
+            val mimeType = it.getString(indexCache[i++])
+            val contentUri = if (mimeType.contains("image"))
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            else
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            val uri = ContentUris.withAppendedId(contentUri, id)
+            Media(
+                id = id,
+                label = title,
+                uri = uri,
+                path = path,
+                relativePath = relativePath,
+                albumID = albumID,
+                albumLabel = albumLabel ?: Build.MODEL,
+                mimeType = mimeType
+            )
+        }
+    }
+
+    override fun getMedia(albumId: Long): Flow<Result<List<Media>>> {
+        val args = listOf(albumId.toString()).toTypedArray()
+        val queryArgs = Bundle().apply {
+            putAll(
+                bundleOf(
+                    ContentResolver.QUERY_ARG_SQL_SELECTION to "((media_type = 1) OR (media_type = 3)) AND (bucket_id = ?)",
+                    ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to args,
+                )
+            )
+        }
+
+        return contentResolver.queryFlow(
+            DataConstants.CONTENT_URI,
+            DataConstants.MEDIA_PROJECTION,
+            queryArgs
+        )
+            .mapToMedia()
+            .map {
+                Result.success(it)
+            }
+            .catch {
+                Result.failure<List<Media>>(it)
+            }
     }
 }
 

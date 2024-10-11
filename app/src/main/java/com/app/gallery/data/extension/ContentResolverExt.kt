@@ -1,44 +1,23 @@
 package com.app.gallery.data.extension
 
 import android.content.ContentResolver
-import android.database.ContentObserver
+import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
-import android.os.CancellationSignal
-import android.os.Handler
-import android.os.Looper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+
 
 fun ContentResolver.queryFlow(
     uri: Uri,
     projection: Array<String>? = null,
     queryArgs: Bundle? = Bundle(),
 ) = callbackFlow {
-
-    var cancellationSignal = CancellationSignal()
-    val mutex = Mutex()
-
-    val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
-        override fun onChange(selfChange: Boolean) {
-            launch(Dispatchers.IO) {
-                mutex.withLock {
-                    cancellationSignal.cancel()
-                    cancellationSignal = CancellationSignal()
-                }
-                runCatching {
-                    trySend(query(uri, projection, queryArgs, cancellationSignal))
-                }
-            }
-        }
-    }
-
-    registerContentObserver(uri, true, observer)
 
     launch(Dispatchers.IO) {
         runCatching {
@@ -49,7 +28,32 @@ fun ContentResolver.queryFlow(
     }
 
     awaitClose {
-        unregisterContentObserver(observer)
-        cancellationSignal.cancel()
     }
 }.conflate()
+
+fun <T> Flow<Cursor?>.mapEachRow(
+    projection: Array<String>,
+    mapping: (Cursor, Array<Int>) -> T,
+) = map {
+    it.mapEachRow(projection, mapping)
+}
+
+fun <T> Cursor?.mapEachRow(
+    projection: Array<String>,
+    mapping: (Cursor, Array<Int>) -> T,
+) = this?.use { cursor ->
+    if (!cursor.moveToFirst()) {
+        return@use emptyList<T>()
+    }
+
+    val indexCache = projection.map { column ->
+        cursor.getColumnIndexOrThrow(column)
+    }.toTypedArray()
+
+    val data = mutableListOf<T>()
+    do {
+        data.add(mapping(cursor, indexCache))
+    } while (cursor.moveToNext())
+
+    data.toList()
+} ?: emptyList()
