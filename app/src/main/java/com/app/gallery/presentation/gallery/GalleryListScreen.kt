@@ -81,11 +81,11 @@ fun GalleryList(
 
         when (uiState.value) {
 
-            is GalleryState.Albums -> {
-                GalleryList(list = (uiState.value as GalleryState.Albums).list)
+            is UiState.Data -> {
+                GalleryList(list = (uiState.value as UiState.Data).value)
             }
 
-            is GalleryState.Loading -> {
+            is UiState.Loading -> {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )

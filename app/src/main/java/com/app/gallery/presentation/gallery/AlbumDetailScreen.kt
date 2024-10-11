@@ -43,14 +43,14 @@ fun AlbumDetailScreen(
 
         when (mediaState.value) {
 
-            is MediaState.Medias -> {
+            is UiState.Data -> {
                 MediaList(
                     name = albumName,
-                    list = (mediaState.value as MediaState.Medias).list
+                    list = (mediaState.value as UiState.Data).value
                 )
             }
 
-            is MediaState.Loading -> {
+            is UiState.Loading -> {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )

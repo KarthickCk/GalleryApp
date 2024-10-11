@@ -22,28 +22,28 @@ class GalleryViewModel @Inject constructor(
     private val getMediaUseCase: GetMediaUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<GalleryState>(GalleryState.Loading)
+    private val _uiState = MutableStateFlow<UiState<List<Album>>>(UiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    private val _mediaState = MutableStateFlow<MediaState>(MediaState.Loading)
+    private val _mediaState = MutableStateFlow<UiState<List<Media>>>(UiState.Loading)
     val mediaState = _mediaState.asStateFlow()
 
     fun loadAlbums() {
         viewModelScope.launch {
             getAlbumsUseCase.invoke()
                 .onStart {
-                    _uiState.value = GalleryState.Loading
+                    _uiState.value = UiState.Loading
                 }
                 .onEach {
                     if (it.isSuccess) {
-                        _uiState.value = GalleryState.Albums(it.getOrNull() ?: emptyList())
+                        _uiState.value = UiState.Data(it.getOrNull() ?: emptyList())
                     } else
                         _uiState.value =
-                            GalleryState.Error(it.exceptionOrNull()?.message ?: "Error")
+                            UiState.Error(it.exceptionOrNull()?.message ?: "Error")
                 }
                 .catch {
                     _uiState.value =
-                        GalleryState.Error(it.message ?: "Error")
+                        UiState.Error(it.message ?: "Error")
                 }
                 .collect()
         }
@@ -54,24 +54,22 @@ class GalleryViewModel @Inject constructor(
             getMediaUseCase.invoke(albumId)
                 .onEach {
                     if (it.isSuccess) {
-                        _mediaState.value = MediaState.Medias(it.getOrNull() ?: emptyList())
+                        _mediaState.value = UiState.Data(it.getOrNull() ?: emptyList())
                     } else
                         _mediaState.value =
-                            MediaState.Error(it.exceptionOrNull()?.message ?: "Error")
+                            UiState.Error(it.exceptionOrNull()?.message ?: "Error")
+                }
+                .catch {
+                    _mediaState.value =
+                        UiState.Error(it.message ?: "Error")
                 }
                 .collect()
         }
     }
 }
 
-sealed class GalleryState {
-    data class Albums(val list: List<Album>) : GalleryState()
-    data class Error(val message: String) : GalleryState()
-    data object Loading : GalleryState()
-}
-
-sealed class MediaState {
-    data class Medias(val list: List<Media>) : MediaState()
-    data class Error(val message: String) : MediaState()
-    data object Loading : MediaState()
+sealed class UiState<out T> {
+    data class Data<out R>(val value: R): UiState<R>()
+    data object Loading : UiState<Nothing>()
+    data class Error(val message: String) : UiState<Nothing>()
 }
