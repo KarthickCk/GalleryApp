@@ -35,6 +35,7 @@ import com.github.panpf.sketch.AsyncImage
 fun AlbumComponent(
     modifier: Modifier = Modifier,
     album: Album,
+    count: Int,
     onItemClick: (Album) -> Unit,
 ) {
 
@@ -44,7 +45,7 @@ fun AlbumComponent(
     ) {
         Box(
             modifier = Modifier
-                .aspectRatio(1f)
+                .aspectRatio(if (count >= 2) 1f else 2f)
         ) {
             AlbumImage(
                 album = album,

@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -101,6 +103,12 @@ private fun GalleryList(list: List<Album>) {
 
     val context = LocalContext.current
     val navController = LocalNavController.current
+    val gridCount =  remember {
+        mutableStateOf(2)
+    }
+    val listIcon = remember {
+        mutableStateOf(Icons.Default.GridView)
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -121,14 +129,30 @@ private fun GalleryList(list: List<Album>) {
                     )
                 }
             },
-            modifier = Modifier.padding(horizontal = 10.dp)
+            modifier = Modifier.padding(horizontal = 10.dp),
+            actions = {
+                IconButton(onClick = {
+                    if (gridCount.value == 2) {
+                        gridCount.value = 1
+                        listIcon.value = Icons.Default.List
+                    } else {
+                        gridCount.value = 2
+                        listIcon.value = Icons.Default.GridView
+                    }
+                }) {
+                    androidx.compose.material3.Icon(
+                        imageVector = listIcon.value,
+                        contentDescription = "Localized description"
+                    )
+                }
+            }
         )
 
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2)
+            columns = GridCells.Fixed(gridCount.value)
         ) {
             items(list) {
-                AlbumComponent(album = it) {
+                AlbumComponent(album = it, count = gridCount.value) {
                     navController.navigate(
                         GalleryDestinations.ALBUM_DETAILS.replace(
                             "{albumId}", it.id.toString()
