@@ -133,6 +133,7 @@ private fun GalleryList(list: List<Album>) {
                         GalleryDestinations.ALBUM_DETAILS.replace(
                             "{albumId}", it.id.toString()
                         )
+                            .replace("{albumName}", it.label)
                     )
                 }
             }

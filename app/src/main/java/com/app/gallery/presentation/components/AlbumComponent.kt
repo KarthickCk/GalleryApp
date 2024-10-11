@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.app.gallery.domain.model.Album
+import com.app.gallery.domain.model.Media
 
 @Composable
 fun AlbumComponent(
@@ -69,6 +70,44 @@ fun AlbumComponent(
             }
         }
     }
+}
+
+@Composable
+fun MediaComponent(
+    modifier: Modifier = Modifier,
+    media: Media,
+) {
+
+    Column(
+        modifier = modifier
+            .padding(horizontal = 2.dp, vertical = 2.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .aspectRatio(1f)
+        ) {
+            MediaImage(
+                media
+            )
+        }
+    }
+}
+
+@Composable
+fun MediaImage(
+    media: Media,
+) {
+    AsyncImage(
+        model = media.uri.toString(),
+        modifier = Modifier
+            .fillMaxSize()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+            ),
+        contentDescription = media.label,
+        contentScale = ContentScale.Crop,
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)

@@ -61,7 +61,6 @@ class GalleryRepository @Inject constructor(
                             it.getColumnIndex(MediaStore.Files.FileColumns.RELATIVE_PATH)
                         val thumbnailDateIndex =
                             it.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED)
-                        val sizeIndex = it.getColumnIndex(MediaStore.Files.FileColumns.SIZE)
                         val mimeTypeIndex =
                             it.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)
 

@@ -49,10 +49,17 @@ class MainActivity : ComponentActivity() {
                                         type = NavType.LongType
                                         defaultValue = 0
                                     },
+                                    navArgument(
+                                        name = "albumName"
+                                    ) {
+                                        type = NavType.StringType
+                                        defaultValue = ""
+                                    },
                                 )
                             ) {
                                 val id = it.arguments?.getLong("albumId") ?: 0
-                                AlbumDetailScreen(albumId = id)
+                                val name = it.arguments?.getString("albumName") ?: ""
+                                AlbumDetailScreen(albumId = id, albumName = name)
                             }
                         }
                     }
@@ -68,5 +75,5 @@ val LocalNavController = compositionLocalOf<NavController> { error("No NavContro
 
 object GalleryDestinations {
     val GALLERY_LIST = "screenList"
-    val ALBUM_DETAILS = "albumDetails?albumId={albumId}"
+    val ALBUM_DETAILS = "albumDetails?albumId={albumId}&albumName={albumName}"
 }
