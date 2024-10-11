@@ -20,13 +20,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.app.gallery.R
 import com.app.gallery.domain.model.Media
-import com.app.gallery.presentation.LocalNavController
 import com.app.gallery.presentation.components.MediaComponent
 
 @Composable
@@ -36,7 +33,6 @@ fun AlbumDetailScreen(
     galleryViewModel: GalleryViewModel = hiltViewModel()
 ) {
 
-    val context = LocalContext.current
     val mediaState = galleryViewModel.mediaState.collectAsStateWithLifecycle()
 
     LaunchedEffect(key1 = albumId) {

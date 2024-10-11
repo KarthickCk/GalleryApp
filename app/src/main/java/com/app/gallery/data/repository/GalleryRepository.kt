@@ -3,6 +3,7 @@ package com.app.gallery.data.repository
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.database.Cursor
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -47,9 +48,28 @@ class GalleryRepository @Inject constructor(
     }
 
     private fun Flow<Cursor?>.mapToAlbum(): Flow<List<Album>> {
+
+        val allAlbums = mutableMapOf<Int, Album>().apply {
+            this[Album.ALL_IMAGE_ID.toInt()] = Album(
+                id = Album.ALL_IMAGE_ID,
+                label = "All Images",
+                uri = Uri.EMPTY,
+                pathToThumbnail = "",
+                relativePath = "",
+            )
+
+            this[Album.ALL_VIDEO_ID.toInt()] = Album(
+                id = Album.ALL_VIDEO_ID,
+                label = "All Videos",
+                uri = Uri.EMPTY,
+                pathToThumbnail = "",
+                relativePath = "",
+            )
+        }
+
         return map { cursor ->
             cursor.let {
-                mutableMapOf<Int, Album>().apply {
+                allAlbums.apply {
                     it?.use {
                         val idIndex = it.getColumnIndex(MediaStore.Files.FileColumns._ID)
                         val albumIdIndex = it.getColumnIndex(MediaStore.Files.FileColumns.BUCKET_ID)
@@ -73,13 +93,28 @@ class GalleryRepository @Inject constructor(
 
                             this[bucketId]?.also { album ->
                                 album.count += 1
+                                val mimeType = it.getString(mimeTypeIndex)
+                                if (mimeType.contains("image")) {
+                                    this[Album.ALL_IMAGE_ID.toInt()]?.also { album ->
+                                        if (album.uri == Uri.EMPTY) {
+                                            album.uri = Uri.parse(it.getString(thumbnailPathIndex))
+                                        }
+                                        album.count += 1
+                                    }
+                                } else {
+                                    this[Album.ALL_VIDEO_ID.toInt()]?.also { album ->
+                                        if (album.uri == Uri.EMPTY) {
+                                            album.uri = Uri.parse(it.getString(thumbnailPathIndex))
+                                        }
+                                        album.count += 1
+                                    }
+                                }
                             } ?: run {
                                 val albumId = it.getLong(albumIdIndex)
                                 val id = it.getLong(idIndex)
                                 val label = it.tryGetString(labelIndex, Build.MODEL)
                                 val thumbnailPath = it.getString(thumbnailPathIndex)
                                 val thumbnailRelativePath = it.getString(thumbnailRelativePathIndex)
-                                val thumbnailDate = it.getLong(thumbnailDateIndex)
                                 val mimeType = it.getString(mimeTypeIndex)
                                 val contentUri = if (mimeType.contains("image"))
                                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -92,7 +127,6 @@ class GalleryRepository @Inject constructor(
                                     uri = ContentUris.withAppendedId(contentUri, id),
                                     pathToThumbnail = thumbnailPath,
                                     relativePath = thumbnailRelativePath,
-                                    timestamp = thumbnailDate
                                 ).apply {
                                     this.count += 1
                                 }
@@ -137,13 +171,33 @@ class GalleryRepository @Inject constructor(
 
     override fun getMedia(albumId: Long): Flow<Result<List<Media>>> {
         val args = listOf(albumId.toString()).toTypedArray()
-        val queryArgs = Bundle().apply {
-            putAll(
-                bundleOf(
-                    ContentResolver.QUERY_ARG_SQL_SELECTION to "((media_type = 1) OR (media_type = 3)) AND (bucket_id = ?)",
-                    ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to args,
+        val queryArgs = if (albumId == Album.ALL_IMAGE_ID) {
+            Bundle().apply {
+                putAll(
+                    bundleOf(
+                        ContentResolver.QUERY_ARG_SQL_SELECTION to "media_type = 1",
+                        ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to listOf<String>().toTypedArray(),
+                    )
                 )
-            )
+            }
+        } else if (albumId == Album.ALL_VIDEO_ID) {
+            Bundle().apply {
+                putAll(
+                    bundleOf(
+                        ContentResolver.QUERY_ARG_SQL_SELECTION to "media_type = 3",
+                        ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to listOf<String>().toTypedArray(),
+                    )
+                )
+            }
+        } else {
+            Bundle().apply {
+                putAll(
+                    bundleOf(
+                        ContentResolver.QUERY_ARG_SQL_SELECTION to "((media_type = 1) OR (media_type = 3)) AND (bucket_id = ?)",
+                        ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to args,
+                    )
+                )
+            }
         }
 
         return contentResolver.queryFlow(

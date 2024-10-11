@@ -10,9 +10,13 @@ import kotlinx.parcelize.Parcelize
 data class Album(
     val id: Long = 0,
     val label: String,
-    val uri: Uri,
-    val pathToThumbnail: String,
-    val relativePath: String,
-    val timestamp: Long,
+    var uri: Uri,
+    var pathToThumbnail: String,
+    var relativePath: String,
     var count: Long = 0,
-) : Parcelable
+) : Parcelable {
+     companion object {
+         const val ALL_IMAGE_ID = -1L
+         const val ALL_VIDEO_ID = -2L
+     }
+}

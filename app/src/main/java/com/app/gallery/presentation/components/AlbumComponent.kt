@@ -27,9 +27,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.app.gallery.domain.model.Album
 import com.app.gallery.domain.model.Media
+import com.github.panpf.sketch.AsyncImage
 
 @Composable
 fun AlbumComponent(
@@ -97,8 +97,9 @@ fun MediaComponent(
 fun MediaImage(
     media: Media,
 ) {
+
     AsyncImage(
-        model = media.uri.toString(),
+        uri = media.uri.toString(),
         modifier = Modifier
             .fillMaxSize()
             .border(
@@ -122,7 +123,7 @@ fun AlbumImage(
     val cornerRadius by animateDpAsState(targetValue = radius, label = "cornerRadius")
 
     AsyncImage(
-        model = album.uri.toString(),
+        uri = album.uri.toString(),
         modifier = Modifier
             .fillMaxSize()
             .border(

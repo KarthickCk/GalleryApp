@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
@@ -28,13 +29,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GalleryTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
+                Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
                     val navController = rememberNavController()
 
                     CompositionLocalProvider(LocalNavController provides navController) {
                         NavHost(
                             navController = navController,
-                            startDestination = GalleryDestinations.GALLERY_LIST
+                            startDestination = GalleryDestinations.GALLERY_LIST,
+                            modifier = Modifier.padding(padding)
                         ) {
                             composable(route = GalleryDestinations.GALLERY_LIST) {
                                 GalleryList()
@@ -72,8 +74,7 @@ class MainActivity : ComponentActivity() {
 
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController found!") }
 
-
 object GalleryDestinations {
-    val GALLERY_LIST = "screenList"
-    val ALBUM_DETAILS = "albumDetails?albumId={albumId}&albumName={albumName}"
+    const val GALLERY_LIST = "screenList"
+    const val ALBUM_DETAILS = "albumDetails?albumId={albumId}&albumName={albumName}"
 }

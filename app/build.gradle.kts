@@ -81,7 +81,6 @@ dependencies {
     // Compose - Accompanists
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.accompanist.drawablepainter)
 
     // Android MDC - Material
     implementation(libs.material)
@@ -113,5 +112,6 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     debugRuntimeOnly(libs.compose.ui.test.manifest)
 
-    implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
+    implementation(libs.sketch.compose)
+    implementation(libs.sketch.video)
 }

@@ -3,7 +3,6 @@ adaptive = "1.1.0-alpha01"
 agp = "8.5.1"
 appcompat = "1.7.0"
 core = "1.11.1"
-fuzzywuzzy = "1.4.0"
 gpuimage = "2.1.0"
 graphicsShapes = "1.0.0"
 kotlin = "2.0.20"
@@ -22,6 +21,7 @@ navigation-runtime-ktx = "2.7.7"
 accompanist = "0.34.0"
 composealpha = "1.7.0-rc01"
 workRuntimeKtx = "2.9.1"
+sketch = "4.0.0-alpha08"
 
 [libraries]
 # AndroidX
@@ -75,8 +75,8 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 # View-based AndroidX
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
-# Fuzzy Search
-fuzzywuzzy = { module = "me.xdrop:fuzzywuzzy", version.ref = "fuzzywuzzy" }
+sketch-compose = { module = "io.github.panpf.sketch4:sketch-compose", version.ref = "sketch" }
+sketch-video = { module = "io.github.panpf.sketch4:sketch-video-ffmpeg", version.ref = "sketch" }
 
 # Tests
 junit = { group = "junit", name = "junit", version.ref = "junit" }
