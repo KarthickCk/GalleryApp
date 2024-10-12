@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -82,7 +83,16 @@ fun GalleryList(
         when (uiState.value) {
 
             is UiState.Data -> {
-                GalleryList(list = (uiState.value as UiState.Data).value)
+                val list = (uiState.value as UiState.Data).value
+                if (list.isEmpty()) {
+                    Text(
+                        text = stringResource(id = R.string.empty_album),
+                        modifier = Modifier.align(Alignment.Center),
+                        style = MaterialTheme.typography.displaySmall
+                    )
+                    return
+                }
+                GalleryList(list = list)
             }
 
             is UiState.Loading -> {
