@@ -91,24 +91,24 @@ class GalleryRepository @Inject constructor(
                         while (!it.isAfterLast) {
                             val bucketId = it.getInt(albumIdIndex)
 
+                            val mimeType = it.getString(mimeTypeIndex)
+                            if (mimeType.contains("image")) {
+                                this[Album.ALL_IMAGE_ID.toInt()]?.also { album ->
+                                    if (album.uri == Uri.EMPTY) {
+                                        album.uri = Uri.parse(it.getString(thumbnailPathIndex))
+                                    }
+                                    album.count += 1
+                                }
+                            } else {
+                                this[Album.ALL_VIDEO_ID.toInt()]?.also { album ->
+                                    if (album.uri == Uri.EMPTY) {
+                                        album.uri = Uri.parse(it.getString(thumbnailPathIndex))
+                                    }
+                                    album.count += 1
+                                }
+                            }
                             this[bucketId]?.also { album ->
                                 album.count += 1
-                                val mimeType = it.getString(mimeTypeIndex)
-                                if (mimeType.contains("image")) {
-                                    this[Album.ALL_IMAGE_ID.toInt()]?.also { album ->
-                                        if (album.uri == Uri.EMPTY) {
-                                            album.uri = Uri.parse(it.getString(thumbnailPathIndex))
-                                        }
-                                        album.count += 1
-                                    }
-                                } else {
-                                    this[Album.ALL_VIDEO_ID.toInt()]?.also { album ->
-                                        if (album.uri == Uri.EMPTY) {
-                                            album.uri = Uri.parse(it.getString(thumbnailPathIndex))
-                                        }
-                                        album.count += 1
-                                    }
-                                }
                             } ?: run {
                                 val albumId = it.getLong(albumIdIndex)
                                 val id = it.getLong(idIndex)
